@@ -11,10 +11,11 @@
         #header { text-align: center; padding: 15px; background: white; }
         #timer-display { font-size: 40px; font-weight: bold; }
         #current-word-display { font-size: 28px; color: #e91e63; font-weight: bold; }
-        #status-message { font-size: 14px; color: #d32f2f; height: 40px; padding: 5px; }
+        #status-message { font-size: 16px; color: #d32f2f; padding: 10px; font-weight: bold; }
         .player-card { border: 2px solid #ddd; padding: 10px; margin: 5px; border-radius: 10px; }
         .active { border-color: #2196f3; background: #e3f2fd; }
-        #word-history { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; background: #fff; }
+        #word-history { display: block; padding: 15px; background: #fff; margin-top: 10px; border-top: 2px solid #ccc; max-height: 150px; overflow-y: auto; }
+        .history-tag { display: inline-block; background: #e0e0e0; padding: 5px 10px; margin: 2px; border-radius: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -24,7 +25,6 @@
     <input type="number" id="setup-count" value="3" placeholder="Oyuncu Sayısı"><br><br>
     <input type="number" id="setup-time" value="10" placeholder="Süre"><br><br>
     <input type="number" id="setup-win-score" value="10" placeholder="Hedef Skor"><br><br>
-    <div id="player-names-inputs"></div>
     <button onclick="startGame()" style="padding:15px; width:100%">Oyunu Başlat</button>
 </div>
 
@@ -35,13 +35,12 @@
         <div id="status-message"></div>
     </div>
     <div id="players-container"></div>
-    <div id="word-history"></div>
+    <div id="word-history"><strong>Geçmiş:</strong><br></div>
 </div>
 
 <script>
-    let players = [], roundTime, winScore, currentPlayerIndex = 0, usedWords = [], currentWord = "", gameStarted = false, timerInterval;
+    let players = [], roundTime, currentPlayerIndex = 0, usedWords = [], currentWord = "", gameStarted = false, timerInterval;
 
-    // Harf Dönüşüm Fonksiyonu (u->ü, ı->i, o->ö)
     function normalize(str) {
         return str.replace(/u/g, 'ü').replace(/ı/g, 'i').replace(/o/g, 'ö').toLowerCase();
     }
@@ -55,6 +54,7 @@
         let rawWord = event.results[0][0].transcript.trim().toLowerCase().split(" ").pop();
         let word = normalize(rawWord);
         
+        // Hatalı olsa bile duyulanı yaz
         document.getElementById('status-message').innerText = "Duyulan: " + rawWord;
 
         if (!gameStarted) {
@@ -63,16 +63,13 @@
             let lastTwo = normalize(currentWord.slice(-2));
             let startsWith = normalize(word.slice(0, 2));
 
-            // Kural Kontrolleri
             if (usedWords.includes(word)) {
-                applyPenalty("TABU! Bu kelime zaten söylendi.");
+                showError("TABU! Bu kelime zaten söylendi.");
             } else if (startsWith !== lastTwo) {
-                applyPenalty("Hata: '" + currentWord.slice(-2) + "' ile başlamalı!");
-            } else if (/[aeıioöuü]{2,}$/.test(word)) { // Basit kural: sonu 2 sesli bitmesin
-                applyPenalty("Kural: Kelime sonu 2 sesli olamaz!");
+                showError("Hata: '" + currentWord.slice(-2) + "' ile başlamalı!");
             } else {
                 let isReal = await checkTDK(word);
-                if (!isReal) applyPenalty("Sözlükte böyle bir kelime yok!");
+                if (!isReal) showError("Sözlükte böyle bir kelime yok!");
                 else acceptWord(word, false);
             }
         }
@@ -93,15 +90,14 @@
         usedWords.push(word);
         document.getElementById('current-word-display').innerText = word.toUpperCase();
         document.getElementById('word-history').innerHTML += `<span class="history-tag">${word}</span>`;
-        if (isFirst) gameStarted = true;
+        document.getElementById('status-message').innerText = "Doğru!";
+        
+        if (isFirst) { gameStarted = true; startTimer(); }
         else { players[currentPlayerIndex].score++; nextTurn(); }
-        startTimer();
     }
 
-    function applyPenalty(msg) {
+    function showError(msg) {
         document.getElementById('status-message').innerText = msg;
-        if(players[currentPlayerIndex].score > 0) players[currentPlayerIndex].score--;
-        nextTurn();
     }
 
     function nextTurn() {
@@ -136,12 +132,6 @@
         players.forEach((p, i) => h += `<div class="player-card ${i==currentPlayerIndex?'active':''}">${p.name}: ${p.score}</div>`);
         document.getElementById('players-container').innerHTML = h;
     }
-
-    // İlk kurulum inputları
-    document.getElementById('setup-count').onchange = () => {
-        let container = document.getElementById('player-names-inputs');
-        container.innerHTML = "";
-    };
 </script>
 </body>
 </html>
