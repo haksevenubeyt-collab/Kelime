@@ -2,136 +2,708 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>Otomatik Kelime Türetmece</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kelime Türetmece</title>
     <style>
-        body { margin: 0; font-family: sans-serif; background-color: #f0f2f5; }
-        #setup-screen { padding: 20px; }
-        #game-screen { display: none; flex-direction: column; height: 100vh; }
-        #header { text-align: center; padding: 15px; background: white; }
-        #timer-display { font-size: 40px; font-weight: bold; }
-        #current-word-display { font-size: 28px; color: #e91e63; font-weight: bold; }
-        #status-message { font-size: 16px; color: #d32f2f; padding: 10px; font-weight: bold; }
-        .player-card { border: 2px solid #ddd; padding: 10px; margin: 5px; border-radius: 10px; }
-        .active { border-color: #2196f3; background: #e3f2fd; }
-        #word-history { display: block; padding: 15px; background: #fff; margin-top: 10px; border-top: 2px solid #ccc; max-height: 150px; overflow-y: auto; }
-        .history-tag { display: inline-block; background: #e0e0e0; padding: 5px 10px; margin: 2px; border-radius: 15px; font-size: 14px; }
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;900&display=swap');
+
+        :root {
+            --bg: #0f0f1a;
+            --card: #1a1a2e;
+            --accent: #e91e8c;
+            --accent2: #00d4ff;
+            --ok: #00e676;
+            --warn: #ff5252;
+            --text: #f0f0f0;
+            --muted: #888;
+            --border: #2a2a4a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── SETUP ── */
+        #setup-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 30px 20px;
+            gap: 0;
+        }
+
+        #setup-screen h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 56px;
+            letter-spacing: 4px;
+            color: var(--accent);
+            text-shadow: 0 0 30px rgba(233,30,140,0.4);
+            margin-bottom: 6px;
+        }
+
+        #setup-screen p.subtitle {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 36px;
+            letter-spacing: 1px;
+        }
+
+        .setup-group {
+            width: 100%;
+            max-width: 360px;
+            margin-bottom: 16px;
+        }
+
+        .setup-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .setup-group input {
+            width: 100%;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            text-align: center;
+            padding: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .setup-group input:focus { border-color: var(--accent); }
+
+        #start-btn {
+            margin-top: 10px;
+            width: 100%;
+            max-width: 360px;
+            padding: 18px;
+            background: var(--accent);
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 28px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(233,30,140,0.35);
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+
+        #start-btn:active { transform: scale(0.97); box-shadow: 0 0 10px rgba(233,30,140,0.2); }
+
+        /* ── GAME ── */
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Timer bar */
+        #timer-bar-wrap {
+            height: 6px;
+            background: var(--border);
+            position: relative;
+        }
+
+        #timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            width: 100%;
+            transition: width 1s linear, background 0.5s;
+        }
+
+        /* Header */
+        #header {
+            background: var(--card);
+            padding: 14px 16px 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        #timer-display {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 52px;
+            line-height: 1;
+            color: var(--accent2);
+            text-shadow: 0 0 20px rgba(0,212,255,0.4);
+            transition: color 0.3s;
+        }
+
+        #timer-display.danger { color: var(--warn); text-shadow: 0 0 20px rgba(255,82,82,0.5); }
+
+        #current-word-display {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 36px;
+            color: var(--accent);
+            letter-spacing: 4px;
+            margin: 4px 0 2px;
+            min-height: 44px;
+        }
+
+        #suffix-hint {
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            min-height: 18px;
+        }
+
+        /* Status box */
+        #status-box {
+            margin: 8px 12px 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            flex-shrink: 0;
+        }
+
+        #heard-line {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 4px;
+            min-height: 18px;
+        }
+
+        #heard-line span { color: var(--accent2); font-weight: 700; }
+
+        #status-message {
+            font-size: 14px;
+            font-weight: 700;
+            min-height: 20px;
+            color: var(--ok);
+        }
+
+        #status-message.error { color: var(--warn); }
+        #status-message.neutral { color: var(--muted); }
+
+        /* Players */
+        #players-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 12px;
+            flex-shrink: 0;
+            justify-content: center;
+        }
+
+        .player-card {
+            flex: 1 1 80px;
+            max-width: 140px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 10px;
+            text-align: center;
+            background: var(--card);
+            transition: all 0.25s;
+            position: relative;
+        }
+
+        .player-card.active {
+            border-color: var(--accent);
+            background: rgba(233,30,140,0.12);
+            box-shadow: 0 0 16px rgba(233,30,140,0.25);
+        }
+
+        .player-card .p-name {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .player-card.active .p-name { color: var(--accent); }
+
+        .player-card .p-score {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 30px;
+            line-height: 1.1;
+            color: var(--text);
+        }
+
+        .player-card .p-score .score-neg { color: var(--warn); }
+
+        /* Mic indicator */
+        #mic-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        .mic-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--muted);
+            transition: background 0.3s;
+        }
+
+        .mic-dot.listening { background: var(--ok); animation: pulse 1.2s infinite; }
+
+        @keyframes pulse {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* History */
+        #word-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 12px 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        #history-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        #history-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .history-tag {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: 0.5px;
+        }
+
+        .history-tag.latest {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(233,30,140,0.1);
+        }
+
+        .history-tag.tabu {
+            border-color: var(--warn);
+            color: var(--warn);
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        /* Win screen */
+        #win-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 30px;
+            gap: 16px;
+        }
+
+        #win-screen h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 64px;
+            color: var(--ok);
+            text-shadow: 0 0 40px rgba(0,230,118,0.5);
+            letter-spacing: 4px;
+        }
+
+        #win-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            color: var(--accent);
+            letter-spacing: 3px;
+        }
+
+        #win-scores {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px 24px;
+            width: 100%;
+            max-width: 360px;
+            border: 1px solid var(--border);
+        }
+
+        .win-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .win-row:last-child { border-bottom: none; }
+        .win-row .ws { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--accent2); }
+
+        #restart-btn {
+            padding: 16px 40px;
+            background: var(--accent);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 26px;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
+<!-- SETUP -->
 <div id="setup-screen">
-    <h2>Kelime Türetmece</h2>
-    <input type="number" id="setup-count" value="3" placeholder="Oyuncu Sayısı"><br><br>
-    <input type="number" id="setup-time" value="10" placeholder="Süre"><br><br>
-    <input type="number" id="setup-win-score" value="10" placeholder="Hedef Skor"><br><br>
-    <button onclick="startGame()" style="padding:15px; width:100%">Oyunu Başlat</button>
+    <h1>Türetmece</h1>
+    <p class="subtitle">Son 2 harfle kelime türet</p>
+
+    <div class="setup-group">
+        <label>Oyuncu Sayısı</label>
+        <input type="number" id="setup-count" value="3" min="2" max="10">
+    </div>
+    <div class="setup-group">
+        <label>Süre (saniye)</label>
+        <input type="number" id="setup-time" value="15" min="5" max="60">
+    </div>
+    <div class="setup-group">
+        <label>Hedef Puan</label>
+        <input type="number" id="setup-win-score" value="10" min="3" max="50">
+    </div>
+
+    <button id="start-btn" onclick="startGame()">OYUNU BAŞLAT</button>
 </div>
 
+<!-- GAME -->
 <div id="game-screen">
+    <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+
     <div id="header">
         <div id="timer-display">--</div>
-        <div id="current-word-display">Başlamak için kelime söyle</div>
-        <div id="status-message"></div>
+        <div id="current-word-display">Mikrofona kelime söyle</div>
+        <div id="suffix-hint"></div>
     </div>
+
+    <div id="status-box">
+        <div id="heard-line">Bekleniyor…</div>
+        <div id="status-message neutral" id="status-message">—</div>
+    </div>
+
     <div id="players-container"></div>
-    <div id="word-history"><strong>Geçmiş:</strong><br></div>
+
+    <div id="mic-indicator">
+        <div class="mic-dot" id="mic-dot"></div>
+        <span id="mic-label">Mikrofon bekleniyor</span>
+    </div>
+
+    <div id="word-history">
+        <div id="history-title">Kelime Geçmişi</div>
+        <div id="history-tags"></div>
+    </div>
+</div>
+
+<!-- WIN -->
+<div id="win-screen">
+    <h2>🏆 KAZANDI!</h2>
+    <div id="win-name"></div>
+    <div id="win-scores"></div>
+    <button id="restart-btn" onclick="location.reload()">YENİDEN OYNA</button>
 </div>
 
 <script>
-    let players = [], roundTime, currentPlayerIndex = 0, usedWords = [], currentWord = "", gameStarted = false, timerInterval;
+// ── State ──
+let players = [];
+let roundTime, winScore;
+let currentPlayerIndex = 0;
+let usedWords = [];
+let currentWord = "";
+let gameStarted = false;
+let timerInterval = null;
+let timeLeft = 0;
+let recognizing = false;
 
-    function normalize(str) {
-        return str.replace(/u/g, 'ü').replace(/ı/g, 'i').replace(/o/g, 'ö').toLowerCase();
+// ── Turkish normalization (ses tanıma düzeltmeleri) ──
+// Konuşma tanıma bazen u→ü, i→ı, o→ö, s→ş, g→ğ, c→ç yetersiz döndürür.
+// Tersine de olabilir. Burada *sadece* girişi normalize edip karşılaştırıyoruz.
+// Gerçek kelimeyi TDK'ya olduğu gibi gönderiyoruz.
+function normalize(str) {
+    return str
+        .toLowerCase()
+        .trim();
+}
+
+// Son 2 harfi al; eğer 2. harf sessiz + sessiz ise uyar
+function getLastTwo(word) {
+    return word.slice(-2);
+}
+
+const VOWELS = new Set(['a','e','ı','i','o','ö','u','ü']);
+function isConsonant(ch) { return ch && !VOWELS.has(ch); }
+
+function endsWithTwoConsonants(word) {
+    if (word.length < 2) return false;
+    const last = word[word.length - 1];
+    const prev = word[word.length - 2];
+    return isConsonant(last) && isConsonant(prev);
+}
+
+// ── TDK kontrolü ──
+async function checkTDK(word) {
+    try {
+        const res = await fetch(`https://sozluk.gov.tr/gts?ara=${encodeURIComponent(word)}`);
+        const data = await res.json();
+        return Array.isArray(data) && data.length > 0;
+    } catch (e) {
+        return true; // Bağlantı yoksa geç
     }
+}
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition = new SpeechRecognition();
-    recognition.lang = 'tr-TR';
-    recognition.continuous = false;
-    
-    recognition.onresult = async (event) => {
-        let rawWord = event.results[0][0].transcript.trim().toLowerCase().split(" ").pop();
-        let word = normalize(rawWord);
-        
-        // Hatalı olsa bile duyulanı yaz
-        document.getElementById('status-message').innerText = "Duyulan: " + rawWord;
+// ── Speech Recognition ──
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = new SpeechRecognition();
+recognition.lang = 'tr-TR';
+recognition.continuous = false;
+recognition.interimResults = false;
 
-        if (!gameStarted) {
-            acceptWord(word, true);
-        } else {
-            let lastTwo = normalize(currentWord.slice(-2));
-            let startsWith = normalize(word.slice(0, 2));
+recognition.onstart = () => {
+    recognizing = true;
+    setMic(true);
+};
 
-            if (usedWords.includes(word)) {
-                showError("TABU! Bu kelime zaten söylendi.");
-            } else if (startsWith !== lastTwo) {
-                showError("Hata: '" + currentWord.slice(-2) + "' ile başlamalı!");
-            } else {
-                let isReal = await checkTDK(word);
-                if (!isReal) showError("Sözlükte böyle bir kelime yok!");
-                else acceptWord(word, false);
-            }
+recognition.onend = () => {
+    recognizing = false;
+    setMic(false);
+    if (gameStarted) {
+        setTimeout(() => { if (!recognizing) recognition.start(); }, 400);
+    }
+};
+
+recognition.onerror = (e) => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    setStatus("Mikrofon hatası: " + e.error, "error");
+};
+
+recognition.onresult = async (event) => {
+    const rawWord = event.results[0][0].transcript.trim().toLowerCase().split(" ").pop();
+    const word = normalize(rawWord);
+
+    setHeard(rawWord);
+
+    if (!gameStarted) {
+        // İlk kelime — sadece gerçek kelime mi kontrol et
+        const real = await checkTDK(word);
+        if (!real) {
+            setStatus("Sözlükte böyle bir kelime yok!", "error");
+            return;
         }
-    };
-
-    recognition.onend = () => { if(gameStarted) setTimeout(() => recognition.start(), 500); };
-
-    async function checkTDK(word) {
-        try {
-            const res = await fetch(`https://sozluk.gov.tr/gts?ara=${word}`);
-            const data = await res.json();
-            return !data.error;
-        } catch(e) { return true; }
+        acceptWord(word, true);
+        return;
     }
 
-    function acceptWord(word, isFirst) {
-        currentWord = word;
-        usedWords.push(word);
-        document.getElementById('current-word-display').innerText = word.toUpperCase();
-        document.getElementById('word-history').innerHTML += `<span class="history-tag">${word}</span>`;
-        document.getElementById('status-message').innerText = "Doğru!";
-        
-        if (isFirst) { gameStarted = true; startTimer(); }
-        else { players[currentPlayerIndex].score++; nextTurn(); }
+    // ── Kural kontrolleri ──
+    if (usedWords.includes(word)) {
+        penalizeAndNext("⛔ TABU! '" + word + "' zaten söylendi. -1 puan!", word, true);
+        return;
     }
 
-    function showError(msg) {
-        document.getElementById('status-message').innerText = msg;
+    const lastTwo = getLastTwo(currentWord);
+    const startsWith = normalize(word.slice(0, 2));
+
+    if (startsWith !== lastTwo) {
+        setStatus("❌ Kural hatası: Kelime '" + lastTwo.toUpperCase() + "' ile başlamalıydı!", "error");
+        return;
     }
 
-    function nextTurn() {
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-        renderPlayers();
+    if (endsWithTwoConsonants(word)) {
+        setStatus("❌ Red: Kelime 2 sessiz harfle bitti (geçersiz).", "error");
+        return;
+    }
+
+    const real = await checkTDK(word);
+    if (!real) {
+        setStatus("❌ Red: '" + word + "' TDK sözlüğünde bulunamadı.", "error");
+        return;
+    }
+
+    acceptWord(word, false);
+};
+
+// ── Game logic ──
+function acceptWord(word, isFirst) {
+    // Önceki latest tag'ını güncelle
+    const prev = document.querySelector('.history-tag.latest');
+    if (prev) prev.classList.remove('latest');
+
+    currentWord = word;
+    usedWords.push(word);
+
+    document.getElementById('current-word-display').innerText = word.toUpperCase();
+
+    const suffix = getLastTwo(word);
+    document.getElementById('suffix-hint').innerText =
+        isFirst ? "Oyun başladı! Sıradaki: '" + suffix.toUpperCase() + "' ile başla" : "";
+
+    addHistoryTag(word, false, false);
+
+    if (isFirst) {
+        setStatus("✅ Oyun başladı!", "ok");
+        gameStarted = true;
         startTimer();
+    } else {
+        setStatus("✅ Doğru! +" + 1 + " puan", "ok");
+        players[currentPlayerIndex].score++;
+        checkWin();
+        nextTurn();
+    }
+}
+
+function penalizeAndNext(msg, word, isTabu) {
+    setStatus(msg, "error");
+    players[currentPlayerIndex].score = Math.max(players[currentPlayerIndex].score - 1, 0);
+    if (isTabu) addHistoryTag(word, true, false);
+    renderPlayers();
+    nextTurn();
+}
+
+function checkWin() {
+    const winner = players.find(p => p.score >= winScore);
+    if (winner) {
+        endGame(winner);
+    }
+}
+
+function endGame(winner) {
+    gameStarted = false;
+    clearInterval(timerInterval);
+    recognition.abort();
+
+    document.getElementById('game-screen').style.display = 'none';
+    document.getElementById('win-screen').style.display = 'flex';
+    document.getElementById('win-name').innerText = winner.name;
+
+    const sorted = [...players].sort((a, b) => b.score - a.score);
+    let html = '';
+    sorted.forEach(p => {
+        html += `<div class="win-row"><span>${p.name}</span><span class="ws">${p.score}</span></div>`;
+    });
+    document.getElementById('win-scores').innerHTML = html;
+}
+
+function nextTurn() {
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    renderPlayers();
+    updateSuffixHint();
+    startTimer();
+}
+
+function updateSuffixHint() {
+    if (currentWord) {
+        const suffix = getLastTwo(currentWord);
+        document.getElementById('suffix-hint').innerText =
+            "'" + suffix.toUpperCase() + "' ile başla — " + players[currentPlayerIndex].name + "'nin sırası";
+    }
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timeLeft = roundTime;
+    updateTimerUI(timeLeft);
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerUI(timeLeft);
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            setStatus("⏱ Süre doldu! Sıra geçti.", "error");
+            setTimeout(() => nextTurn(), 800);
+        }
+    }, 1000);
+}
+
+function updateTimerUI(t) {
+    const display = document.getElementById('timer-display');
+    display.innerText = t;
+    display.className = t <= 4 ? 'danger' : '';
+
+    const pct = (t / roundTime) * 100;
+    const bar = document.getElementById('timer-bar');
+    bar.style.width = pct + '%';
+    if (pct < 30) {
+        bar.style.background = 'var(--warn)';
+    } else {
+        bar.style.background = 'linear-gradient(90deg, var(--accent), var(--accent2))';
+    }
+}
+
+function addHistoryTag(word, isTabu, isLatest) {
+    const tag = document.createElement('span');
+    tag.className = 'history-tag' + (isTabu ? ' tabu' : ' latest');
+    tag.innerText = word;
+    const container = document.getElementById('history-tags');
+    container.prepend(tag); // En yeni başa
+}
+
+function setHeard(raw) {
+    document.getElementById('heard-line').innerHTML =
+        'Duyulan: <span>' + raw + '</span>';
+}
+
+function setStatus(msg, type) {
+    const el = document.getElementById('status-message');
+    el.innerText = msg;
+    el.className = type === 'error' ? 'error' : (type === 'ok' ? '' : 'neutral');
+}
+
+function setMic(active) {
+    document.getElementById('mic-dot').className = 'mic-dot' + (active ? ' listening' : '');
+    document.getElementById('mic-label').innerText = active ? 'Dinleniyor…' : 'Mikrofon bekleniyor';
+}
+
+// ── Setup ──
+function startGame() {
+    roundTime = parseInt(document.getElementById('setup-time').value) || 15;
+    winScore = parseInt(document.getElementById('setup-win-score').value) || 10;
+    const pCount = parseInt(document.getElementById('setup-count').value) || 3;
+
+    players = [];
+    for (let i = 0; i < pCount; i++) {
+        players.push({ name: "P" + (i + 1), score: 0 });
     }
 
-    function startTimer() {
-        clearInterval(timerInterval);
-        let t = roundTime;
-        document.getElementById('timer-display').innerText = t;
-        timerInterval = setInterval(() => {
-            t--;
-            document.getElementById('timer-display').innerText = t;
-            if(t <= 0) nextTurn();
-        }, 1000);
-    }
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'flex';
 
-    function startGame() {
-        roundTime = document.getElementById('setup-time').value;
-        let pCount = document.getElementById('setup-count').value;
-        for(let i=0; i<pCount; i++) players.push({name: "P"+(i+1), score: 0});
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'flex';
-        renderPlayers();
-        recognition.start();
-    }
+    renderPlayers();
+    setStatus("İlk kelimeyi mikrofona söyle!", "neutral");
+    recognition.start();
+}
 
-    function renderPlayers() {
-        let h = "";
-        players.forEach((p, i) => h += `<div class="player-card ${i==currentPlayerIndex?'active':''}">${p.name}: ${p.score}</div>`);
-        document.getElementById('players-container').innerHTML = h;
-    }
-</script>
-</body>
-</html>
+function renderPlayers() {
+    let h = "";
+    players.forEach((p, i) => {
+        h += `<div class="player-card ${i === currentPlayerIndex ? 'active' : ''}">
+            <d
