@@ -5,194 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
     <title>Otomatik Kelime Türetmece</title>
     <style>
-        body { margin: 0; font-family: sans-serif; background-color: #f0f2f5; color: #333; overflow-x: hidden; }
-        
-        /* Kurulum Ekranı */
-        #setup-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 300; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .setup-group { margin-bottom: 15px; }
-        .setup-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .setup-group input { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        #player-names-inputs input { margin-bottom: 10px; }
-        .btn-start { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; background-color: #4CAF50; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px; }
-
-        /* Oyun Ekranı */
+        body { margin: 0; font-family: sans-serif; background-color: #f0f2f5; }
+        #setup-screen { padding: 20px; }
         #game-screen { display: none; flex-direction: column; height: 100vh; }
-        #header { text-align: center; padding: 15px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        #timer-display { font-size: 56px; font-weight: bold; }
-        #current-word-display { font-size: 24px; color: #e91e63; font-weight: bold; margin-top: 10px; height: 30px; }
-        #status-message { font-size: 14px; color: #666; margin-top: 5px; }
-
-        /* Oyuncular */
-        #players-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 15px; flex-grow: 1; align-content: flex-start; }
-        .player-card { display: flex; flex-direction: column; align-items: center; width: 45%; max-width: 160px; transition: 0.3s; }
-        .player-card.active .btn-main { background-color: #bbdefb; border-color: #2196f3; box-shadow: 0 0 15px rgba(33, 150, 243, 0.5); transform: scale(1.05); }
-        .btn-main { width: 100%; padding: 15px 5px; font-size: 18px; font-weight: bold; background-color: white; border: 2px solid #dee2e6; border-radius: 12px; cursor: pointer; margin-bottom: 5px; text-align: center; }
-        .btn-minus { width: 50%; padding: 5px; font-size: 16px; background-color: #ffebee; border: 1px solid #ffcdd2; color: #d32f2f; border-radius: 8px; cursor: pointer; }
-
-        #word-history { background: white; padding: 10px; height: 100px; overflow-y: auto; border-top: 1px solid #ccc; font-size: 14px; display: flex; flex-wrap: wrap; gap: 5px; }
-        .history-tag { background: #e0e0e0; padding: 3px 8px; border-radius: 15px; }
-
-        #winner-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(76, 175, 80, 0.95); color: white; justify-content: center; align-items: center; flex-direction: column; font-size: 36px; font-weight: bold; z-index: 400; text-align: center; padding: 20px;}
-        .btn-restart { margin-top: 30px; padding: 15px 30px; font-size: 20px; background: white; color: #4CAF50; border: none; border-radius: 10px; cursor: pointer; }
+        #header { text-align: center; padding: 15px; background: white; }
+        #timer-display { font-size: 40px; font-weight: bold; }
+        #current-word-display { font-size: 28px; color: #e91e63; font-weight: bold; }
+        #status-message { font-size: 14px; color: #d32f2f; height: 40px; padding: 5px; }
+        .player-card { border: 2px solid #ddd; padding: 10px; margin: 5px; border-radius: 10px; }
+        .active { border-color: #2196f3; background: #e3f2fd; }
+        #word-history { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; background: #fff; }
     </style>
 </head>
 <body>
 
-    <div id="setup-screen">
-        <h2 style="text-align: center;">Kelime Türetmece Ayarları</h2>
-        <div class="setup-group">
-            <label>Kişi Sayısı (2-10):</label>
-            <input type="number" id="setup-count" value="3" min="2" max="10" onchange="generateNameInputs()">
-        </div>
-        <div class="setup-group">
-            <label>Tur Süresi (Saniye):</label>
-            <input type="number" id="setup-time" value="10" min="3">
-        </div>
-        <div class="setup-group">
-            <label>Kazanma Skoru:</label>
-            <input type="number" id="setup-win-score" value="10" min="1">
-        </div>
-        <div class="setup-group" id="player-names-inputs"></div>
-        <button class="btn-start" onclick="startGame()">Oyunu Başlat</button>
+<div id="setup-screen">
+    <h2>Kelime Türetmece</h2>
+    <input type="number" id="setup-count" value="3" placeholder="Oyuncu Sayısı"><br><br>
+    <input type="number" id="setup-time" value="10" placeholder="Süre"><br><br>
+    <input type="number" id="setup-win-score" value="10" placeholder="Hedef Skor"><br><br>
+    <div id="player-names-inputs"></div>
+    <button onclick="startGame()" style="padding:15px; width:100%">Oyunu Başlat</button>
+</div>
+
+<div id="game-screen">
+    <div id="header">
+        <div id="timer-display">--</div>
+        <div id="current-word-display">Başlamak için kelime söyle</div>
+        <div id="status-message"></div>
     </div>
+    <div id="players-container"></div>
+    <div id="word-history"></div>
+</div>
 
-    <div id="game-screen">
-        <div id="header">
-            <div id="timer-display">Bekleniyor...</div>
-            <div id="current-word-display">MİKROFON DİNLİYOR</div>
-            <div id="status-message">Oyunu başlatmak için bir kelime söyleyin</div>
-        </div>
-        <div id="players-container"></div>
-        <div id="word-history"></div>
-    </div>
+<script>
+    let players = [], roundTime, winScore, currentPlayerIndex = 0, usedWords = [], currentWord = "", gameStarted = false, timerInterval;
 
-    <div id="winner-overlay">
-        <div id="winner-name">Oyuncu Kazandı!</div>
-        <button class="btn-restart" onclick="location.reload()">Yeni Oyun</button>
-    </div>
+    // Harf Dönüşüm Fonksiyonu (u->ü, ı->i, o->ö)
+    function normalize(str) {
+        return str.replace(/u/g, 'ü').replace(/ı/g, 'i').replace(/o/g, 'ö').toLowerCase();
+    }
 
-    <script>
-        let players = [], roundTime = 10, winScore = 10, currentTime = 10, currentPlayerIndex = 0, timerInterval = null, usedWords = [], currentWord = "", gameStarted = false;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = new SpeechRecognition();
+    recognition.lang = 'tr-TR';
+    recognition.continuous = false;
+    
+    recognition.onresult = async (event) => {
+        let rawWord = event.results[0][0].transcript.trim().toLowerCase().split(" ").pop();
+        let word = normalize(rawWord);
+        
+        document.getElementById('status-message').innerText = "Duyulan: " + rawWord;
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = null;
+        if (!gameStarted) {
+            acceptWord(word, true);
+        } else {
+            let lastTwo = normalize(currentWord.slice(-2));
+            let startsWith = normalize(word.slice(0, 2));
 
-        if(SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'tr-TR';
-            recognition.continuous = false; // Her kelime sonrası tetikleme için false
-            recognition.interimResults = false;
-
-            // KRİTİK DÜZELTME: Mikrofon kapandığında 0.5sn bekle ve tekrar aç
-            recognition.onend = () => {
-                setTimeout(() => {
-                    try { recognition.start(); } catch(e) {}
-                }, 500);
-            };
-        }
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
-
-        function playSound(type) {
-            if (!audioCtx) audioCtx = new AudioContext();
-            audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            if (type === 'blink') { osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
-            else if (type === 'daat') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5); osc.start(); osc.stop(audioCtx.currentTime + 0.5); }
-        }
-
-        function generateNameInputs() {
-            const count = parseInt(document.getElementById('setup-count').value);
-            const container = document.getElementById('player-names-inputs');
-            container.innerHTML = '<label>Oyuncu İsimleri:</label>';
-            for (let i = 0; i < count; i++) container.innerHTML += `<input type="text" id="p-name-${i}" placeholder="${i+1}. Oyuncu İsmi" value="Oyuncu ${i+1}">`;
-        }
-        window.onload = generateNameInputs;
-
-        function startGame() {
-            if (!audioCtx) audioCtx = new AudioContext();
-            roundTime = parseInt(document.getElementById('setup-time').value);
-            winScore = parseInt(document.getElementById('setup-win-score').value);
-            const count = parseInt(document.getElementById('setup-count').value);
-            players = [];
-            for (let i = 0; i < count; i++) players.push({ name: document.getElementById(`p-name-${i}`).value || `Oyuncu ${i+1}`, score: 0 });
-            document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'flex';
-            renderPlayers();
-            highlightCurrentPlayer();
-            if(recognition) {
-                recognition.onresult = handleSpeechResult;
-                recognition.start();
-            }
-        }
-
-        async function handleSpeechResult(event) {
-            const transcript = event.results[0][0].transcript.trim().toLowerCase();
-            const spokenWord = transcript.split(" ").pop();
-            document.getElementById('status-message').innerText = `Duyulan: ${spokenWord}`;
-
-            if (!gameStarted) {
-                acceptWord(spokenWord, true);
+            // Kural Kontrolleri
+            if (usedWords.includes(word)) {
+                applyPenalty("TABU! Bu kelime zaten söylendi.");
+            } else if (startsWith !== lastTwo) {
+                applyPenalty("Hata: '" + currentWord.slice(-2) + "' ile başlamalı!");
+            } else if (/[aeıioöuü]{2,}$/.test(word)) { // Basit kural: sonu 2 sesli bitmesin
+                applyPenalty("Kural: Kelime sonu 2 sesli olamaz!");
             } else {
-                const lastTwoLetters = currentWord.slice(-2);
-                if (!spokenWord.startsWith(lastTwoLetters) || usedWords.includes(spokenWord)) {
-                    applyPenalty("Hatalı kelime veya kural ihlali!");
-                } else {
-                    acceptWord(spokenWord, false);
-                }
+                let isReal = await checkTDK(word);
+                if (!isReal) applyPenalty("Sözlükte böyle bir kelime yok!");
+                else acceptWord(word, false);
             }
         }
+    };
 
-        function acceptWord(word, isFirstWord) {
-            playSound('blink');
-            currentWord = word;
-            usedWords.push(word);
-            document.getElementById('current-word-display').innerText = currentWord.toUpperCase('tr-TR');
-            if (isFirstWord) { gameStarted = true; startTimer(); }
-            else { players[currentPlayerIndex].score++; document.getElementById(`score-${currentPlayerIndex}`).innerText = players[currentPlayerIndex].score; nextTurn(); }
-        }
+    recognition.onend = () => { if(gameStarted) setTimeout(() => recognition.start(), 500); };
 
-        function applyPenalty(reason) {
-            playSound('daat');
-            document.getElementById('status-message').innerText = reason;
-            if (players[currentPlayerIndex].score > 0) { players[currentPlayerIndex].score--; document.getElementById(`score-${currentPlayerIndex}`).innerText = players[currentPlayerIndex].score; }
-            nextTurn();
-        }
+    async function checkTDK(word) {
+        try {
+            const res = await fetch(`https://sozluk.gov.tr/gts?ara=${word}`);
+            const data = await res.json();
+            return !data.error;
+        } catch(e) { return true; }
+    }
 
-        function nextTurn() {
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-            highlightCurrentPlayer();
-            startTimer();
-        }
+    function acceptWord(word, isFirst) {
+        currentWord = word;
+        usedWords.push(word);
+        document.getElementById('current-word-display').innerText = word.toUpperCase();
+        document.getElementById('word-history').innerHTML += `<span class="history-tag">${word}</span>`;
+        if (isFirst) gameStarted = true;
+        else { players[currentPlayerIndex].score++; nextTurn(); }
+        startTimer();
+    }
 
-        function startTimer() {
-            clearInterval(timerInterval);
-            currentTime = roundTime;
-            document.getElementById('timer-display').innerText = currentTime;
-            timerInterval = setInterval(() => {
-                currentTime--;
-                document.getElementById('timer-display').innerText = currentTime;
-                if (currentTime <= 0) { clearInterval(timerInterval); playSound('daat'); nextTurn(); }
-            }, 1000);
-        }
+    function applyPenalty(msg) {
+        document.getElementById('status-message').innerText = msg;
+        if(players[currentPlayerIndex].score > 0) players[currentPlayerIndex].score--;
+        nextTurn();
+    }
 
-        function renderPlayers() {
-            const container = document.getElementById('players-container');
-            container.innerHTML = '';
-            players.forEach((p, index) => container.innerHTML += `<div class="player-card" id="card-${index}"><button class="btn-main" onclick="manualCorrect(${index})">${p.name}<br><span id="score-${index}">${p.score}</span></button><button class="btn-minus" onclick="manualPenalty(${index})">-1</button></div>`);
-        }
+    function nextTurn() {
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        renderPlayers();
+        startTimer();
+    }
 
-        function highlightCurrentPlayer() {
-            document.querySelectorAll('.player-card').forEach(c => c.classList.remove('active'));
-            document.getElementById(`card-${currentPlayerIndex}`).classList.add('active');
-        }
+    function startTimer() {
+        clearInterval(timerInterval);
+        let t = roundTime;
+        document.getElementById('timer-display').innerText = t;
+        timerInterval = setInterval(() => {
+            t--;
+            document.getElementById('timer-display').innerText = t;
+            if(t <= 0) nextTurn();
+        }, 1000);
+    }
 
-        function manualCorrect(index) { players[index].score++; document.getElementById(`score-${index}`).innerText = players[index].score; nextTurn(); }
-        function manualPenalty(index) { if (players[index].score > 0) players[index].score--; document.getElementById(`score-${index}`).innerText = players[index].score; }
-    </script>
+    function startGame() {
+        roundTime = document.getElementById('setup-time').value;
+        let pCount = document.getElementById('setup-count').value;
+        for(let i=0; i<pCount; i++) players.push({name: "P"+(i+1), score: 0});
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+        renderPlayers();
+        recognition.start();
+    }
+
+    function renderPlayers() {
+        let h = "";
+        players.forEach((p, i) => h += `<div class="player-card ${i==currentPlayerIndex?'active':''}">${p.name}: ${p.score}</div>`);
+        document.getElementById('players-container').innerHTML = h;
+    }
+
+    // İlk kurulum inputları
+    document.getElementById('setup-count').onchange = () => {
+        let container = document.getElementById('player-names-inputs');
+        container.innerHTML = "";
+    };
+</script>
 </body>
 </html>
